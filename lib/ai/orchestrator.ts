@@ -89,12 +89,17 @@ export async function streamCopilot({
         limit: intent.k,
       })
 
-      // Product cards on screen render from this part; assistant text never carries product details.
-      writer.write({
-        type: 'data-products',
-        id: generateId(),
-        data: { products, appliedFilters },
-      })
+      // Skip the data-products part on empty retrieval — emitting it
+      // renders a "No matches" placeholder card under the assistant
+      // message, which can visibly contradict the model if it slips and
+      // references earlier turns' products from the conversation history.
+      if (products.length > 0) {
+        writer.write({
+          type: 'data-products',
+          id: generateId(),
+          data: { products, appliedFilters },
+        })
+      }
 
       runReplyStream({
         model: m,

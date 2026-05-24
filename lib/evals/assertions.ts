@@ -67,7 +67,10 @@ export function textContainsApology(turn: IntentTurn): boolean {
 // cases where the prompt says to redirect (e.g. asking what they're
 // looking for).
 export function textSteersToShopping(turn: IntentTurn): boolean {
-  return /\b(shop|product|catalog|browse|find|looking for|help.*find)\b/i.test(
+  // Word-prefix matches so "shopping" / "products" / "browsing" / "finding"
+  // / "catalogue" all qualify. `\b` at the start prevents false hits
+  // inside unrelated words ("workshop" → no match).
+  return /\b(?:shop\w*|product\w*|catalog\w*|brows\w*|find\w*|looking for|help.*find)/i.test(
     turn.text,
   )
 }

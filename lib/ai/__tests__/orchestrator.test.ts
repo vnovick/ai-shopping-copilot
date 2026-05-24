@@ -213,6 +213,20 @@ describe('streamCopilot — shopping branch', () => {
     expect(args.system).toContain('Found It')
     expect(args.tools).toHaveProperty('listCategories')
   })
+
+  it('does NOT emit a data-products part when retrieval returns empty', async () => {
+    // Empty results must not render a contradictory "No matches" card
+    // under the model's reply — see prompts.ts for the matching rule.
+    mocks.searchAndRank.mockResolvedValueOnce({ products: [], appliedFilters })
+
+    const { body } = await runAndDrain({ messages: USER_MSG })
+
+    expect(body).not.toContain('data-products')
+    // The model is still invoked — it apologises via the prompt's "empty" rule.
+    expect(mocks.streamText).toHaveBeenCalledTimes(1)
+    const args = mocks.streamText.mock.calls[0][0]
+    expect(args.system).toContain('RETRIEVED PRODUCTS: none')
+  })
 })
 
 describe('streamCopilot — onFinish forwarding', () => {
