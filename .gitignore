@@ -32,6 +32,23 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local sqlite (dev + e2e)
+/local.db
+/local.db-journal
+/local.db-wal
+/local.db-shm
+/local-e2e.db
+/local-e2e.db-journal
+/local-e2e.db-wal
+/local-e2e.db-shm
+
+# playwright
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
 
 # vercel
 .vercel
@@ -39,3 +56,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+**/openapi-types.ts
+
+# private build notes — phase plans, gap audits, scratch design docs.
+# Kept locally for development context but not part of the published repo.
+/planning
