@@ -26,6 +26,14 @@ pnpm db:migrate                  # creates ./local.db
 pnpm dev                         # http://localhost:3000
 ```
 
+> **NOTE — `better-sqlite3` build approval.** pnpm 10 blocks native
+> install scripts by default, so the first `pnpm install` will skip
+> compiling `better-sqlite3` and `pnpm db:migrate` will fail with
+> "Could not locate the bindings file". Run **`pnpm approve-builds`**
+> once to allow it (persisted in `package.json` for future installs),
+> then `pnpm install` again. One-shot equivalent: `pnpm rebuild
+> better-sqlite3`.
+
 Always `pnpm`. Never npm, npx, or yarn — see [`CLAUDE.md`](./CLAUDE.md).
 
 | Command | What it does |
@@ -205,7 +213,7 @@ dummyjson_products_openapi.yaml   Committed; input to gen:openapi
 
 **`Error: model not found` / 404 from OpenAI.** Confirm `OPENAI_API_KEY` in `.env.local` is set and the account has access to `gpt-5.4-mini`. To use a different model, edit the `OPENAI_MODEL_ID` constant in `lib/ai/model.ts` — both `lib/ai/orchestrator.ts` and `lib/ai/intent.ts` read from it.
 
-**Native build of `better-sqlite3` fails on `pnpm install`.** pnpm 10 blocks lifecycle scripts by default. From the repo root: `pnpm rebuild better-sqlite3`. If that fails, check your Node version (24 LTS is the floor here) and that you have build tools installed (`xcode-select --install` on macOS).
+**Native build of `better-sqlite3` fails on `pnpm install` ("Could not locate the bindings file").** pnpm 10 blocks lifecycle scripts by default — the native binding never gets compiled. Run **`pnpm approve-builds`** once (persisted in `package.json` so future installs work) then `pnpm install` again. One-shot equivalent: `pnpm rebuild better-sqlite3`. If neither works, check your Node version (24 LTS is the floor here) and that you have build tools installed (`xcode-select --install` on macOS).
 
 **Migrations are out of sync after a schema change.** `pnpm db:generate` to produce a new migration file, then `pnpm db:migrate` to apply it. Drizzle keeps a journal in `lib/db/migrations/meta/`.
 
