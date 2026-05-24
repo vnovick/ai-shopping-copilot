@@ -56,7 +56,8 @@ The principle: **the LLM never decides whether to retrieve.** A structured-outpu
 
 ```mermaid
 flowchart TD
-    POST["POST /api/chat"] --> Persist["persistFirstTurnAtomic<br/>(chat + first user message,<br/>one transaction)"]
+    POST["POST /api/chat"] --> Validate["validate request<br/>(size cap → Zod parse →<br/>last-message-is-user check)"]
+    Validate --> Persist["persistFirstTurnAtomic<br/>(chat + first user message,<br/>one transaction)"]
     Persist --> Stream[streamCopilot]
     Stream --> Intent["extractIntent<br/>(structured output:<br/>shopping / chitchat / clarification)"]
 
@@ -64,8 +65,8 @@ flowchart TD
     Intent -->|clarification| Clarify["streamText<br/>(CLARIFICATION prompt + listCategories tool)"]
     Intent -->|shopping| Search[searchAndRank]
 
-    Search --> DataPart["write 'data-products' UI part<br/>(orchestrator-written, not model-written)"]
-    DataPart --> Shop["streamText<br/>(SHOPPING prompt + retrieved products injected)"]
+    Search --> Shop["streamText<br/>(SHOPPING prompt + retrieved products injected<br/>+ listCategories tool)"]
+    Search -.->|products.length > 0| DataPart["write 'data-products' UI part<br/>(orchestrator-written, not model-written)"]
 
     Chitchat --> OnFinish["onFinish:<br/>saveMessages(assistant)"]
     Clarify --> OnFinish
@@ -86,14 +87,17 @@ sequenceDiagram
 
     U->>FE: types message
     FE->>API: POST {id, messages}
-    API->>DB: persistFirstTurnAtomic
+    API->>API: validate (size cap + Zod)
+    API->>DB: persistFirstTurnAtomic<br/>(chat row + user msg, one tx)
     API->>ORC: stream(messages, signal)
     ORC->>LLM: extractIntent (structured output)
     LLM-->>ORC: { type: shopping, category, priceMax, ... }
     ORC->>DJ: searchAndRank (deterministic)
     DJ-->>ORC: products[]
-    ORC->>FE: write 'data-products' part
-    FE-->>U: render product cards
+    opt products.length > 0
+        ORC->>FE: write 'data-products' part
+        FE-->>U: render product cards
+    end
     ORC->>LLM: streamText (reply prompt + products in context)
     LLM-->>FE: text deltas
     FE-->>U: render assistant prose
