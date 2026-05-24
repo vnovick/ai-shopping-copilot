@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "eval": "tsx --env-file=.env.local lib/evals/runner.ts"
+    "eval": "tsx --env-file=.env.local lib/evals/runner.ts",
+    "postinstall": "pnpm gen:openapi"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.65",
